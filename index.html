@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام إدارة شبكة نائف نت اللاسلكية - النسخ السحابي التلقائي</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card-border: #334155;
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --emerald: #10b981;
+    --amber: #f59e0b;
+    --rose: #f43f5e;
+    --purple: #8b5cf6;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+  body { margin: 0; padding: 0; background-color: var(--bg); color: var(--text); direction: rtl; }
+  header {
+    background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+    padding: 18px 24px;
+    border-bottom: 2px solid #3b82f6;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+  }
+  .brand h1 { margin: 0; font-size: 22px; color: #fff; display: flex; align-items: center; gap: 10px; }
+  .brand p { margin: 4px 0 0; font-size: 13px; color: #93c5fd; }
+  .cloud-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid #10b981;
+  }
+  .cloud-status.offline {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border-color: #f59e0b;
+  }
+  .top-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .btn {
+    padding: 9px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 13px;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.2s;
+  }
+  .btn-primary { background: var(--primary); }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-emerald { background: var(--emerald); }
+  .btn-amber { background: var(--amber); color: #000; }
+  .btn-rose { background: var(--rose); }
+  .btn-purple { background: var(--purple); }
+  .btn-dark { background: #334155; }
+  
+  .container { max-width: 1450px; margin: 20px auto; padding: 0 16px; }
+  
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    padding: 16px;
+    border-radius: 12px;
+    border-right: 4px solid var(--primary);
+  }
+  .stat-card.green { border-right-color: var(--emerald); }
+  .stat-card.amber { border-right-color: var(--amber); }
+  .stat-card.rose { border-right-color: var(--rose); }
+  .stat-card.purple { border-right-color: var(--purple); }
+  .stat-card h3 { margin: 0; font-size: 13px; color: var(--muted); }
+  .stat-card .val { font-size: 24px; font-weight: bold; margin-top: 6px; }
+  .stat-card .sub { font-size: 11px; color: #cbd5e1; margin-top: 4px; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: var(--card);
+    color: var(--muted);
+    border: 1px solid var(--card-border);
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  .tab-btn.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  /* Panels */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Form & Search Controls */
+  .box {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 20px;
+  }
+  .box-title { margin: 0 0 14px 0; font-size: 17px; color: #60a5fa; border-bottom: 1px solid #334155; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group label { font-size: 12px; color: #cbd5e1; font-weight: bold; }
+  .form-group input, .form-group select {
+    padding: 9px 11px;
+    border-radius: 7px;
+    border: 1px solid #475569;
+    background: #0f172a;
+    color: #fff;
+    font-size: 13px;
+  }
+  .form-group input:focus, .form-group select:focus {
+    outline: 2px solid var(--primary);
+    border-color: transparent;
+  }
+
+  /* Search & Filter Bar */
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .search-input {
+    flex: 1;
+    min-width: 260px;
+    padding: 11px 14px;
+    border-radius: 8px;
+    border: 2px solid var(--primary);
+    background: #0f172a;
+    color: #fff;
+    font-size: 14px;
+  }
+
+  /* Table */
+  .table-wrap {
+    overflow-x: auto;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: right;
+  }
+  th, td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #334155;
+  }
+  th {
+    background: #0f172a;
+    color: #93c5fd;
+    font-weight: bold;
+    white-space: nowrap;
+  }
+  tr:hover { background: rgba(59, 130, 246, 0.08); }
+  .badge {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-block;
+  }
+  .badge-mine { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
+  .badge-client { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid #f59e0b; }
+  .badge-vlan17 { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+  .badge-vlan18 { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
+
+  /* Broadcast Cards */
+  .bcast-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+  }
+  .bcast-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 14px;
+    border-top: 3px solid var(--emerald);
+  }
+  .bcast-card h4 { margin: 0 0 8px 0; color: #38bdf8; font-size: 16px; }
+  .bcast-meta { font-size: 12px; color: #cbd5e1; line-height: 1.7; }
+
+  /* Print Header Banner */
+  .print-banner {
+    display: none;
+    padding: 12px;
+    border: 2px solid #1e3a8a;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    background: #f8fafc;
+    color: #000;
+  }
+
+  /* Print / PDF Styles */
+  @media print {
+    body { background: #fff !important; color: #000 !important; }
+    .no-print, .tabs, .top-actions, .filter-bar, #addFormBox { display: none !important; }
+    .print-banner { display: block !important; }
+    .panel { display: block !important; margin-bottom: 30px; }
+    .box, .table-wrap, .stat-card, .bcast-card {
+      background: #fff !important;
+      color: #000 !important;
+      border: 1px solid #ccc !important;
+      box-shadow: none !important;
+    }
+    th { background: #1e3a8a !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    td { color: #000 !important; border-bottom: 1px solid #ddd !important; }
+    header { background: #1e3a8a !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>
+      <span>🌐 نظام إدارة وتوثيق شبكة نائف نت اللاسلكية</span>
+      <span id="cloudBadge" class="cloud-status offline no-print">☁️ الحفظ التلقائي: محلي (جاهز للربط السحابي)</span>
+    </h1>
+    <p>المالك والمدير: نائف محمود الصراري | هاتف: 736661655 | آخر عملية حفظ/تحديث: <strong id="lastSavedTime" style="color:#fbbf24;">الآن</strong></p>
+  </div>
+  <div class="top-actions no-print">
+    <button class="btn btn-purple" onclick="switchTab('tabCloud', document.getElementById('btnTabCloud'))">☁️ إعدادات السحابة والنسخ التلقائي</button>
+    <button class="btn btn-rose" onclick="printWithTimestamp()">📄 حفظ PDF بالتاريخ والوقت</button>
+    <button class="btn btn-emerald" onclick="exportCSV()">📊 تصدير Excel بالتاريخ والوقت</button>
+    <button class="btn btn-primary" onclick="downloadBackup()">💾 حفظ نسخة احتياطية (مع الوقت)</button>
+    <label class="btn btn-amber" style="cursor:pointer;">
+      📂 استيراد نسخة
+      <input type="file" accept=".json" style="display:none;" onchange="importBackupFile(event)">
+    </label>
+  </div>
+</header>
+
+<div class="container">
+  <!-- Print Timestamp Banner (Visible on PDF Export) -->
+  <div class="print-banner" id="printBanner">
+    <strong>وثيقة رسمية صادرة من نظام شبكة نائف نت اللاسلكية</strong> | المالك: نائف محمود الصراري (736661655) | تاريخ ووقت استخراج التقرير: <span id="printTimeText"></span>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>إجمالي الأجهزة والفيلانات</h3>
+      <div class="val" id="statTotal">0</div>
+      <div class="sub">موزعة بين 172.17 و 172.18</div>
+    </div>
+    <div class="stat-card green">
+      <h3>أجهزة ملك الشبكة (حقي / عهدة)</h3>
+      <div class="val" id="statMine">0</div>
+      <div class="sub">أصول ثابتة وعهدة مسترجعة</div>
+    </div>
+    <div class="stat-card amber">
+      <h3>نطاق 172.17.1.X (فيلان 2 - 301)</h3>
+      <div class="val" id="statV17">0</div>
+      <div class="sub">الرينج الأساسي الأول</div>
+    </div>
+    <div class="stat-card rose">
+      <h3>نطاق 172.18.1.X (فيلان 302+)</h3>
+      <div class="val" id="statV18">0</div>
+      <div class="sub">الرينج الأساسي الثاني</div>
+    </div>
+    <div class="stat-card purple no-print">
+      <h3>حالة المزامنة السحابية</h3>
+      <div class="val" id="statCloud" style="font-size:16px; margin-top:10px; color:#c4b5fd;">حفظ محلي فوري</div>
+      <div class="sub" id="statCloudSub">كل تعديل يُحفظ بالتاريخ والوقت</div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="tabs no-print">
+    <button class="tab-btn active" onclick="switchTab('tabDevices', this)">📋 سجل الأجهزة والفيلانات ولوحة الإضافة</button>
+    <button class="tab-btn" onclick="switchTab('tabBroadcast', this)">📡 لوحة تحكم محطات البث والأبراج</button>
+    <button class="tab-btn" onclick="switchTab('tabFamily', this)">🛡️ وثيقة حقوق الأهل والتركة</button>
+    <button class="tab-btn" id="btnTabCloud" onclick="switchTab('tabCloud', this)">☁️ المزامنة السحابية والتقويم المؤرخ</button>
+  </div>
+
+  <!-- TAB 1: DEVICES & CONTROL PANEL -->
+  <div id="tabDevices" class="panel active">
+    <!-- Add / Edit Device Form -->
+    <div class="box no-print" id="addFormBox">
+      <h3 class="box-title">
+        <span>➕ لوحة تحكم إضافة / تعديل جهاز (مع التعبئة الذكية للفيلان والآيبي والإكمال التلقائي)</span>
+        <span style="font-size:12px; color:#34d399;">يتم الحفظ محلياً وسحابياً فور الضغط على حفظ</span>
+      </h3>
+      <div class="form-grid">
+        <input type="hidden" id="editId" value="">
+        <div class="form-group">
+          <label>رقم الفيلان (VLAN) * [اكتبه ليتعبأ الآيبي تلقائياً]</label>
+          <input type="number" id="fVlan" placeholder="مثال: 29 أو 302" oninput="autoFillFromVlan()">
+        </div>
+        <div class="form-group">
+          <label>اسم الجهاز / الشبكة *</label>
+          <input type="text" id="fName" placeholder="مثال: AP-29 أو 302">
+        </div>
+        <div class="form-group">
+          <label>عنوان الآيبي (IP Address) *</label>
+          <input type="text" id="fIp" placeholder="172.17.1.X أو 172.18.1.X">
+        </div>
+        <div class="form-group">
+          <label>رينج الفيلان (Subnet)</label>
+          <input type="text" id="fSubnet" placeholder="172.17.X.1/24">
+        </div>
+        <div class="form-group">
+          <label>الماك أدرس (MAC Address)</label>
+          <input type="text" id="fMac" placeholder="3C:84:6A:...">
+        </div>
+        <div class="form-group">
+          <label>موقع الجهاز / المنطقة (إكمال تلقائي)</label>
+          <input type="text" id="fLoc" list="locList" placeholder="اختر أو اكتب موقعاً...">
+          <datalist id="locList"></datalist>
+        </div>
+        <div class="form-group">
+          <label>مشبوك من (مصدر الربط - إكمال تلقائي)</label>
+          <input type="text" id="fUplink" list="uplinkList" placeholder="مثال: من البرج / عند أمين...">
+          <datalist id="uplinkList"></datalist>
+        </div>
+        <div class="form-group">
+          <label>التبعية وحالة الملكية</label>
+          <select id="fOwner">
+            <option value="ملك الشبكة (حقي)">ملك الشبكة (حقي)</option>
+            <option value="عهدة مسترجعة عند مشترك">عهدة مسترجعة عند مشترك</option>
+            <option value="ملك المشترك (حقه)">ملك المشترك (حقه)</option>
+            <option value="مسلم قيمته">مسلم قيمته</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>تاريخ البدء (التقويم)</label>
+          <input type="date" id="fStartDate" onchange="autoSetEndDate()">
+        </div>
+        <div class="form-group">
+          <label>تاريخ الانتهاء (التجديد)</label>
+          <input type="date" id="fEndDate">
+        </div>
+        <div class="form-group">
+          <label>اسم دخول الإعدادات</label>
+          <input type="text" id="fUser" placeholder="admin / ubnt">
+        </div>
+        <div class="form-group">
+          <label>رمز دخول الإعدادات</label>
+          <input type="text" id="fPwd" placeholder="كلمة المرور">
+        </div>
+        <div class="form-group" style="grid-column: span 2;">
+          <label>ملاحظات أو اسم ورقم مالك الجهاز</label>
+          <input type="text" id="fNotes" list="notesList" placeholder="أبو 3 دقلات / نوع الأنتينة / ملاحظات...">
+          <datalist id="notesList"></datalist>
+        </div>
+      </div>
+      <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="btn btn-emerald" onclick="saveDevice()">💾 حفظ الجهاز ومزامنته الآن</button>
+        <button class="btn btn-dark" onclick="clearForm()">🧹 تفريغ الخانات</button>
+      </div>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="filter-bar no-print">
+      <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث فوراً بالاسم، رقم الفيلان (مثلاً 302)، الآيبي (172.18)، الماك، الموقع، أو الملاحظات..." oninput="renderTable()">
+      <select id="filterOwner" onchange="renderTable()" style="padding:10px; border-radius:8px; background:#1e293b; color:#fff; border:1px solid #475569;">
+        <option value="ALL">جميع الملكيات (الكل)</option>
+        <option value="حقي">ملك الشبكة (حقي) فقط</option>
+        <option value="حقه">ملك المشترك (حقه) فقط</option>
+        <option value="مسلم">مسلم قيمته</option>
+      </select>
+      <select id="filterRange" onchange="renderTable()" style="padding:10px; border-radius:8px; background:#1e293b; color:#fff; border:1px solid #475569;">
+        <option value="ALL">جميع النطاقات (172.17 + 172.18)</option>
+        <option value="172.17">نطاق 172.17.1.X (فيلان 2 - 301)</option>
+        <option value="172.18">نطاق 172.18.1.X (فيلان 302+)</option>
+        <option value="ACTIVE_INFO">الأجهزة الموثقة بمواقع أو ماك فقط</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>م</th>
+            <th>اسم الجهاز</th>
+            <th>الفيلان</th>
+            <th>عنوان IP</th>
+            <th>رينج الفيلان</th>
+            <th>الماك أدرس</th>
+            <th>موقع الجهاز</th>
+            <th>مشبوك من</th>
+            <th>الملكية</th>
+            <th>تاريخ البدء</th>
+            <th>تاريخ الانتهاء</th>
+            <th>بيانات الدخول</th>
+            <th>ملاحظات</th>
+            <th>آخر تعديل</th>
+            <th class="no-print">إجراء</th>
+          </tr>
+        </thead>
+        <tbody id="deviceTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 2: BROADCAST HUB -->
+  <div id="tabBroadcast" class="panel">
+    <div class="box">
+      <h3 class="box-title">📡 لوحة محطات البث الرئيسية ونقاط التوزيع اللاسلكية (ملك الشبكة)</h3>
+      <p style="color:#94a3b8; font-size:13px; margin-bottom:15px;">تعرض هذه اللوحة كافة محطات البث والأنتينات والسويتشات الرئيسية المملوكة للشبكة والموزعة في الأبراج والمنازل:</p>
+      <div class="bcast-grid" id="broadcastGrid"></div>
+    </div>
+  </div>
+
+  <!-- TAB 3: FAMILY & HERITAGE GUIDE -->
+  <div id="tabFamily" class="panel">
+    <div class="box" style="border-right: 5px solid #10b981;">
+      <h3 class="box-title">🛡️ وثيقة حفظ حقوق الأهل والورثة - شبكة نائف نت اللاسلكية</h3>
+      <p style="line-height:1.8; font-size:14px;">
+        <strong>المالك والمسؤول:</strong> نائف محمود الصراري | <strong>رقم الهاتف:</strong> 736661655<br>
+        <strong>1. الأجهزة المكتوب أمامها (ملك الشبكة / حقي):</strong> هي ملك خالص للشبكة (نائف محمود الصراري)، سواء كانت في الأبراج أو موضوعة كعهدة عند المشتركين لتوصيل الخدمة (مثل راوترات أبو 3 دقلات والأنتينات والسويتشات)، ويحق للأهل استردادها أو تقييمها وبيعها.<br>
+        <strong>2. الأجهزة المكتوب أمامها (ملك المشترك / حقه) أو (مسلم قيمته):</strong> هي أجهزة دفع المشتركون قيمتها وهي ملك خاص بهم.<br>
+        <strong>3. المعدات المركزية:</strong> تشمل سيرفر المايكروتك الرئيسي، منظومة الطاقة الشمسية، وبنك بطاريات الليثيوم LiFePO4، بالإضافة إلى خزينة قطع الغيار الاحتياطية (الاسبير).
+      </p>
+    </div>
+    <div class="box">
+      <h3 class="box-title">📋 جدول حصر الأجهزة المملوكة للشبكة (الأصول والعهدة المسترجعة)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>الفيلان</th>
+              <th>اسم الجهاز</th>
+              <th>عنوان IP</th>
+              <th>الموقع / عند من</th>
+              <th>مشبوك من</th>
+              <th>الماك أدرس</th>
+              <th>التفاصيل والمعدات الملحقة</th>
+            </tr>
+          </thead>
+          <tbody id="familyTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: CLOUD SYNC & AUTO BACKUP SETTINGS -->
+  <div id="tabCloud" class="panel no-print">
+    <div class="box" style="border-right: 5px solid #8b5cf6;">
+      <h3 class="box-title">☁️ إعدادات الحفظ السحابي التلقائي وإرسال النسخ المؤرخة</h3>
+      <p style="font-size:13px; color:#cbd5e1; line-height:1.8;">
+        يتيح لك هذا القسم ربط النظام بالسحابة أو ببوت تيليجرام خاص بك بحيث يتم رفع نسخة احتياطية كاملة تلقائياً عند كل تعديل، مع تسمية كل ملف باسم يحتوي على <strong>التاريخ والوقت الدقيق للعملية</strong> (مثال: <code style="color:#fbbf24;">شبكة_نائف_نت_نسخة_2026-10-22_الوقت_05-15-30.json</code>).
+      </p>
+
+      <div class="form-grid" style="margin-top:15px;">
+        <div class="form-group" style="grid-column: span 2;">
+          <label>🔗 رابط قاعدة البيانات السحابية (Firebase Realtime DB URL أو Webhook URL)</label>
+          <input type="text" id="cloudUrl" placeholder="مثال: https://naif-net-default-rtdb.firebaseio.com/backup.json">
+        </div>
+        <div class="form-group">
+          <label>🤖 توكن بوت تيليجرام (Telegram Bot Token - اختياري لإرسال النسخة لهاتفك فوراً)</label>
+          <input type="text" id="tgBotToken" placeholder="مثال: 123456789:ABCdefGHIjklMNOpqrSTUvwxYZ">
+        </div>
+        <div class="form-group">
+          <label>🆔 معرف المحادثة في تيليجرام (Telegram Chat ID)</label>
+          <input type="text" id="tgChatId" placeholder="مثال: 987654321">
+        </div>
+        <div class="form-group">
+          <label>⚙️ خيارات التنزيل التلقائي عند التعديل</label>
+          <select id="autoDownloadMode">
+            <option value="OFF">عدم تنزيل ملف تلقائياً (الحفظ بالمتصفح والسحابة فقط)</option>
+            <option value="ON_SAVE">تنزيل ملف نسخة احتياطية تلقائياً مع كل حفظ لجهازك (ينحفظ بمجلد Google Drive / OneDrive إذا كان متزامناً)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-purple" onclick="saveCloudConfig()">💾 حفظ إعدادات السحابة وتفعيلها</button>
+        <button class="btn btn-primary" onclick="syncToCloudNow(true)">🚀 رفع نسخة للسحابة وتيليجرام الآن</button>
+        <button class="btn btn-emerald" onclick="pullFromCloudNow()">📥 استرجاع آخر نسخة من السحابة</button>
+        <button class="btn btn-dark" onclick="resetToDefault()">🔄 استعادة بيانات المصنع (357 جهازاً)</button>
+      </div>
+      <div id="cloudLog" style="margin-top:14px; font-size:13px; color:#34d399;"></div>
+    </div>
+
+    <div class="box">
+      <h3 class="box-title">📜 سجل عمليات الحفظ والتصدير المؤرخة (Snapshots History)</h3>
+      <div id="historyList" style="font-size:13px; color:#cbd5e1; line-height:1.9;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEFAULT_DEVICES = [{"id": 1, "name": "AP-2", "ip": "172.17.1.2", "vlan": 2, "subnet": "172.17.2.1/24", "mac": "3C:84:6A:19:AF:DE", "loc": "عند الكانبة عند بيت امين", "uplink": "من بيت أمين الجعشني", "owner": "ملك الشبكة (حقي)", "startDate": "2026-01-10", "endDate": "2026-02-09", "user": "", "pwd": "", "notes": "شغال - فوق الكانبة", "category": "بث رئيسي / محطة"}, {"id": 2, "name": "AP-3", "ip": "172.17.1.3", "vlan": 3, "subnet": "172.17.3.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 3, "name": "AP-4", "ip": "172.17.1.4", "vlan": 4, "subnet": "172.17.4.1/24", "mac": "", "loc": "عند بقالة جلال", "uplink": "من عند منصر", "owner": "ملك المشترك (حقه)", "startDate": "2026-01-15", "endDate": "2026-02-14", "user": "", "pwd": "", "notes": "اشتراك تجاري", "category": "نقطة فرعية / مشترك"}, {"id": 4, "name": "AP-5", "ip": "172.17.1.5", "vlan": 5, "subnet": "172.17.5.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 5, "name": "AP-6", "ip": "172.17.1.6", "vlan": 6, "subnet": "172.17.6.1/24", "mac": "", "loc": "وديع", "uplink": "من عند البرج", "owner": "ملك المشترك (حقه)", "startDate": "2026-01-22", "endDate": "2026-02-21", "user": "", "pwd": "", "notes": "كابل من البرج", "category": "نقطة فرعية / مشترك"}, {"id": 6, "name": "AP-7", "ip": "172.17.1.7", "vlan": 7, "subnet": "172.17.7.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 7, "name": "AP-8", "ip": "172.17.1.8", "vlan": 8, "subnet": "172.17.8.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 8, "name": "AP-9", "ip": "172.17.1.9", "vlan": 9, "subnet": "172.17.9.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 9, "name": "AP-10", "ip": "172.17.1.10", "vlan": 10, "subnet": "172.17.10.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 10, "name": "AP-11", "ip": "172.17.1.11", "vlan": 11, "subnet": "172.17.11.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 11, "name": "AP-12", "ip": "172.17.1.12", "vlan": 12, "subnet": "172.17.12.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 12, "name": "AP-13", "ip": "172.17.1.13", "vlan": 13, "subnet": "172.17.13.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 13, "name": "AP-14", "ip": "172.17.1.14", "vlan": 14, "subnet": "172.17.14.1/24", "mac": "", "loc": "سالم", "uplink": "جنب جلال", "owner": "ملك المشترك (حقه)", "startDate": "2026-02-01", "endDate": "2026-03-03", "user": "", "pwd": "", "notes": "راوتر منزلي", "category": "نقطة فرعية / مشترك"}, {"id": 14, "name": "AP-15", "ip": "172.17.1.15", "vlan": 15, "subnet": "172.17.15.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 15, "name": "AP-16", "ip": "172.17.1.16", "vlan": 16, "subnet": "172.17.16.1/24", "mac": "", "loc": "عند عبود وراء صيدلية عند البرج", "uplink": "من عند البرج", "owner": "ملك المشترك (حقه)", "startDate": "2026-02-05", "endDate": "2026-03-07", "user": "", "pwd": "", "notes": "خط مباشر", "category": "نقطة فرعية / مشترك"}, {"id": 16, "name": "AP-17", "ip": "172.17.1.17", "vlan": 17, "subnet": "172.17.17.1/24", "mac": "", "loc": "البيت", "uplink": "السيرفر الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "2026-02-10", "endDate": "2026-03-12", "user": "ubnt", "pwd": "ubnt", "notes": "البيت - محطة مركزية", "category": "بث رئيسي / محطة"}, {"id": 17, "name": "AP-18", "ip": "172.17.1.18", "vlan": 18, "subnet": "172.17.18.1/24", "mac": "", "loc": "الكلية عند العميد", "uplink": "الدور الأول بالكلية", "owner": "ملك الشبكة (حقي)", "startDate": "2026-02-15", "endDate": "2026-03-17", "user": "", "pwd": "", "notes": "تغطية داخلية للكلية", "category": "بث رئيسي / محطة"}, {"id": 18, "name": "AP-19", "ip": "172.17.1.19", "vlan": 19, "subnet": "172.17.19.1/24", "mac": "", "loc": "نقطة توزيع فرعية", "uplink": "خط رئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "2026-02-18", "endDate": "2026-03-20", "user": "", "pwd": "", "notes": "راوتر أبو 3 دقلات", "category": "بث رئيسي / محطة"}, {"id": 19, "name": "AP-20", "ip": "172.17.1.20", "vlan": 20, "subnet": "172.17.20.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 20, "name": "AP-21", "ip": "172.17.1.21", "vlan": 21, "subnet": "172.17.21.1/24", "mac": "", "loc": "ناصر بكيل", "uplink": "من عند بسام ياسين", "owner": "ملك المشترك (حقه)", "startDate": "2026-02-25", "endDate": "2026-03-27", "user": "", "pwd": "", "notes": "أنتينة 3z21", "category": "نقطة فرعية / مشترك"}, {"id": 21, "name": "AP-22", "ip": "172.17.1.22", "vlan": 22, "subnet": "172.17.22.1/24", "mac": "", "loc": "عند عبود بالدور الثالث", "uplink": "من البيت", "owner": "ملك الشبكة (حقي)", "startDate": "2026-03-01", "endDate": "2026-03-31", "user": "", "pwd": "", "notes": "راوتر تقوية", "category": "بث رئيسي / محطة"}, {"id": 22, "name": "AP-23", "ip": "172.17.1.23", "vlan": 23, "subnet": "172.17.23.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 23, "name": "AP-24", "ip": "172.17.1.24", "vlan": 24, "subnet": "172.17.24.1/24", "mac": "", "loc": "عند جلال الحميري", "uplink": "من عند منتصر", "owner": "ملك الشبكة (حقي)", "startDate": "2026-03-05", "endDate": "2026-04-04", "user": "", "pwd": "", "notes": "راوتر أبو 3 دقلات عهدة", "category": "بث رئيسي / محطة"}, {"id": 24, "name": "AP-25", "ip": "172.17.1.25", "vlan": 25, "subnet": "172.17.25.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 25, "name": "AP-26", "ip": "172.17.1.26", "vlan": 26, "subnet": "172.17.26.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 26, "name": "AP-27", "ip": "172.17.1.27", "vlan": 27, "subnet": "172.17.27.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 27, "name": "AP-28", "ip": "172.17.1.28", "vlan": 28, "subnet": "172.17.28.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 28, "name": "AP-29", "ip": "172.17.1.29", "vlan": 29, "subnet": "172.17.29.1/24", "mac": "", "loc": "عند حلمي", "uplink": "من بيت حلمي", "owner": "ملك الشبكة (حقي)", "startDate": "2026-03-10", "endDate": "2026-04-09", "user": "", "pwd": "", "notes": "حقي أبو 3 دقلات + أنتين M5 وسويتش", "category": "بث رئيسي / محطة"}, {"id": 29, "name": "AP-30", "ip": "172.17.1.30", "vlan": 30, "subnet": "172.17.30.1/24", "mac": "", "loc": "محمد عبد النور", "uplink": "عند أمين", "owner": "ملك المشترك (حقه)", "startDate": "2026-03-12", "endDate": "2026-04-11", "user": "", "pwd": "", "notes": "جهاز المشترك", "category": "نقطة فرعية / مشترك"}, {"id": 30, "name": "AP-31", "ip": "172.17.1.31", "vlan": 31, "subnet": "172.17.31.1/24", "mac": "", "loc": "مصنع الشمة", "uplink": "من الموقع حقه", "owner": "ملك المشترك (حقه)", "startDate": "2026-03-15", "endDate": "2026-04-14", "user": "", "pwd": "", "notes": "تغذية خاصة", "category": "نقطة فرعية / مشترك"}, {"id": 31, "name": "AP-32", "ip": "172.17.1.32", "vlan": 32, "subnet": "172.17.32.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 32, "name": "AP-33", "ip": "172.17.1.33", "vlan": 33, "subnet": "172.17.33.1/24", "mac": "", "loc": "إسلام", "uplink": "من عند منتصر", "owner": "ملك الشبكة (حقي)", "startDate": "2026-03-20", "endDate": "2026-04-19", "user": "", "pwd": "", "notes": "راوتر عهدة مسترجع", "category": "نقطة فرعية / مشترك"}, {"id": 33, "name": "AP-34", "ip": "172.17.1.34", "vlan": 34, "subnet": "172.17.34.1/24", "mac": "", "loc": "عند زياد جديد", "uplink": "عند زياد جديد", "owner": "ملك المشترك (حقه)", "startDate": "2026-03-25", "endDate": "2026-04-24", "user": "", "pwd": "", "notes": "حقه مع السلك", "category": "نقطة فرعية / مشترك"}, {"id": 34, "name": "AP-35", "ip": "172.17.1.35", "vlan": 35, "subnet": "172.17.35.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 35, "name": "AP-36", "ip": "172.17.1.36", "vlan": 36, "subnet": "172.17.36.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 36, "name": "AP-37", "ip": "172.17.1.37", "vlan": 37, "subnet": "172.17.37.1/24", "mac": "", "loc": "عند سمير", "uplink": "عند سمير", "owner": "ملك الشبكة (حقي)", "startDate": "2026-04-01", "endDate": "2026-05-01", "user": "", "pwd": "", "notes": "راوتر كامل + مع 2 أنتينة", "category": "بث رئيسي / محطة"}, {"id": 37, "name": "AP-38", "ip": "172.17.1.38", "vlan": 38, "subnet": "172.17.38.1/24", "mac": "", "loc": "محمد محمد", "uplink": "عند زياد", "owner": "ملك المشترك (حقه)", "startDate": "2026-04-05", "endDate": "2026-05-05", "user": "", "pwd": "", "notes": "اشتراك سكني", "category": "نقطة فرعية / مشترك"}, {"id": 38, "name": "AP-39", "ip": "172.17.1.39", "vlan": 39, "subnet": "172.17.39.1/24", "mac": "", "loc": "عند وجدي (الصيدلية)", "uplink": "من عند عبد الله مقداد", "owner": "ملك الشبكة (حقي)", "startDate": "2026-04-10", "endDate": "2026-05-10", "user": "", "pwd": "", "notes": "حقي أبو 3 دقلات", "category": "بث رئيسي / محطة"}, {"id": 39, "name": "AP-40", "ip": "172.17.1.40", "vlan": 40, "subnet": "172.17.40.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 40, "name": "AP-41", "ip": "172.17.1.41", "vlan": 41, "subnet": "172.17.41.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 41, "name": "AP-42", "ip": "172.17.1.42", "vlan": 42, "subnet": "172.17.42.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 42, "name": "AP-43", "ip": "172.17.1.43", "vlan": 43, "subnet": "172.17.43.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 43, "name": "AP-44", "ip": "172.17.1.44", "vlan": 44, "subnet": "172.17.44.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 44, "name": "AP-45", "ip": "172.17.1.45", "vlan": 45, "subnet": "172.17.45.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 45, "name": "AP-46", "ip": "172.17.1.46", "vlan": 46, "subnet": "172.17.46.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 46, "name": "AP-47", "ip": "172.17.1.47", "vlan": 47, "subnet": "172.17.47.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 47, "name": "AP-48", "ip": "172.17.1.48", "vlan": 48, "subnet": "172.17.48.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 48, "name": "AP-49", "ip": "172.17.1.49", "vlan": 49, "subnet": "172.17.49.1/24", "mac": "", "loc": "الشيخ عبد الله سعيد", "uplink": "من عند عبد الملك مع سلك", "owner": "مسلم قيمته", "startDate": "2026-04-15", "endDate": "2026-05-15", "user": "", "pwd": "", "notes": "مسلم قيمته بالكامل", "category": "نقطة فرعية / مشترك"}, {"id": 49, "name": "AP-50", "ip": "172.17.1.50", "vlan": 50, "subnet": "172.17.50.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 50, "name": "AP-51", "ip": "172.17.1.51", "vlan": 51, "subnet": "172.17.51.1/24", "mac": "D8:C8:E9:8E:88:E9", "loc": "موقع كابينة k2-51", "uplink": "كابينة التوزيع", "owner": "ملك الشبكة (حقي)", "startDate": "2026-04-20", "endDate": "2026-05-20", "user": "", "pwd": "", "notes": "k2-51 | k2-51 سويتش ومحول", "category": "بث رئيسي / محطة"}, {"id": 51, "name": "AP-52", "ip": "172.17.1.52", "vlan": 52, "subnet": "172.17.52.1/24", "mac": "2C:B2:1A:83:38:61", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 52, "name": "AP-53", "ip": "172.17.1.53", "vlan": 53, "subnet": "172.17.53.1/24", "mac": "", "loc": "الي يشتغل بالأوقاف", "uplink": "من عند حسام", "owner": "ملك المشترك (حقه)", "startDate": "2026-04-25", "endDate": "2026-05-25", "user": "", "pwd": "", "notes": "راوتر المشترك", "category": "نقطة فرعية / مشترك"}, {"id": 53, "name": "AP-54", "ip": "172.17.1.54", "vlan": 54, "subnet": "172.17.54.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 54, "name": "AP-55", "ip": "172.17.1.55", "vlan": 55, "subnet": "172.17.55.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 55, "name": "AP-56", "ip": "172.17.1.56", "vlan": 56, "subnet": "172.17.56.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 56, "name": "AP-57", "ip": "172.17.1.57", "vlan": 57, "subnet": "172.17.57.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 57, "name": "AP-58", "ip": "172.17.1.58", "vlan": 58, "subnet": "172.17.58.1/24", "mac": "", "loc": "عند محمد قايد (المقبرة)", "uplink": "عند محمد قايد", "owner": "ملك المشترك (حقه)", "startDate": "2026-05-01", "endDate": "2026-05-31", "user": "", "pwd": "", "notes": "السلك حقه", "category": "نقطة فرعية / مشترك"}, {"id": 58, "name": "AP-59", "ip": "172.17.1.59", "vlan": 59, "subnet": "172.17.59.1/24", "mac": "", "loc": "الوزلة", "uplink": "من البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "2026-05-05", "endDate": "2026-06-04", "user": "", "pwd": "", "notes": "الوزلة مع أنتينة وسويتش", "category": "بث رئيسي / محطة"}, {"id": 59, "name": "AP-60", "ip": "172.17.1.60", "vlan": 60, "subnet": "172.17.60.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 60, "name": "AP-61", "ip": "172.17.1.61", "vlan": 61, "subnet": "172.17.61.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 61, "name": "AP-62", "ip": "172.17.1.62", "vlan": 62, "subnet": "172.17.62.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 62, "name": "AP-63", "ip": "172.17.1.63", "vlan": 63, "subnet": "172.17.63.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 63, "name": "AP-64", "ip": "172.17.1.64", "vlan": 64, "subnet": "172.17.64.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 64, "name": "AP-65", "ip": "172.17.1.65", "vlan": 65, "subnet": "172.17.65.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 65, "name": "AP-66", "ip": "172.17.1.66", "vlan": 66, "subnet": "172.17.66.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 66, "name": "AP-67", "ip": "172.17.1.67", "vlan": 67, "subnet": "172.17.67.1/24", "mac": "", "loc": "هيثم", "uplink": "من عند حسام", "owner": "ملك المشترك (حقه)", "startDate": "2026-05-10", "endDate": "2026-06-09", "user": "", "pwd": "", "notes": "راوتر المشترك", "category": "نقطة فرعية / مشترك"}, {"id": 67, "name": "AP-68", "ip": "172.17.1.68", "vlan": 68, "subnet": "172.17.68.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 68, "name": "AP-69", "ip": "172.17.1.69", "vlan": 69, "subnet": "172.17.69.1/24", "mac": "", "loc": "عند البقالة الي وراء البرج", "uplink": "من عند البرج", "owner": "ملك الشبكة (حقي)", "startDate": "2026-05-15", "endDate": "2026-06-14", "user": "", "pwd": "", "notes": "تغذية مستمرة للشبكة", "category": "بث رئيسي / محطة"}, {"id": 69, "name": "AP-70", "ip": "172.17.1.70", "vlan": 70, "subnet": "172.17.70.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 70, "name": "AP-71", "ip": "172.17.1.71", "vlan": 71, "subnet": "172.17.71.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 71, "name": "AP-72", "ip": "172.17.1.72", "vlan": 72, "subnet": "172.17.72.1/24", "mac": "", "loc": "منتصر الحاج", "uplink": "من عند منتصر", "owner": "ملك الشبكة (حقي)", "startDate": "2026-05-20", "endDate": "2026-06-19", "user": "", "pwd": "", "notes": "حقي أبو 3 دقلات", "category": "بث رئيسي / محطة"}, {"id": 72, "name": "AP-73", "ip": "172.17.1.73", "vlan": 73, "subnet": "172.17.73.1/24", "mac": "", "loc": "عيسى عبد العزيز", "uplink": "من عند زياد", "owner": "ملك المشترك (حقه)", "startDate": "2026-05-25", "endDate": "2026-06-24", "user": "", "pwd": "", "notes": "جهاز المشترك", "category": "نقطة فرعية / مشترك"}, {"id": 73, "name": "AP-74", "ip": "172.17.1.74", "vlan": 74, "subnet": "172.17.74.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 74, "name": "AP-75", "ip": "172.17.1.75", "vlan": 75, "subnet": "172.17.75.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 75, "name": "AP-76", "ip": "172.17.1.76", "vlan": 76, "subnet": "172.17.76.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 76, "name": "AP-77", "ip": "172.17.1.77", "vlan": 77, "subnet": "172.17.77.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 77, "name": "AP-78", "ip": "172.17.1.78", "vlan": 78, "subnet": "172.17.78.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 78, "name": "AP-79", "ip": "172.17.1.79", "vlan": 79, "subnet": "172.17.79.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 79, "name": "AP-80", "ip": "172.17.1.80", "vlan": 80, "subnet": "172.17.80.1/24", "mac": "", "loc": "عند أمين بالبيت", "uplink": "من عند أمين", "owner": "ملك الشبكة (حقي)", "startDate": "2026-06-01", "endDate": "2026-07-01", "user": "", "pwd": "", "notes": "حقي سويتش ومودم", "category": "بث رئيسي / محطة"}, {"id": 80, "name": "AP-81", "ip": "172.17.1.81", "vlan": 81, "subnet": "172.17.81.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 81, "name": "AP-82", "ip": "172.17.1.82", "vlan": 82, "subnet": "172.17.82.1/24", "mac": "", "loc": "مهيب الخليدي", "uplink": "عند زياد", "owner": "ملك المشترك (حقه)", "startDate": "2026-06-05", "endDate": "2026-07-05", "user": "", "pwd": "", "notes": "راوتر المشترك", "category": "نقطة فرعية / مشترك"}, {"id": 82, "name": "AP-83", "ip": "172.17.1.83", "vlan": 83, "subnet": "172.17.83.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 83, "name": "AP-84", "ip": "172.17.1.84", "vlan": 84, "subnet": "172.17.84.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 84, "name": "AP-85", "ip": "172.17.1.85", "vlan": 85, "subnet": "172.17.85.1/24", "mac": "", "loc": "محمد فيصل", "uplink": "من السويتش الفرعي", "owner": "ملك المشترك (حقه)", "startDate": "2026-06-10", "endDate": "2026-07-10", "user": "", "pwd": "", "notes": "جهاز المشترك", "category": "نقطة فرعية / مشترك"}, {"id": 85, "name": "AP-86", "ip": "172.17.1.86", "vlan": 86, "subnet": "172.17.86.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 86, "name": "AP-87", "ip": "172.17.1.87", "vlan": 87, "subnet": "172.17.87.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 87, "name": "AP-88", "ip": "172.17.1.88", "vlan": 88, "subnet": "172.17.88.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 88, "name": "AP-89", "ip": "172.17.1.89", "vlan": 89, "subnet": "172.17.89.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 89, "name": "AP-90", "ip": "172.17.1.90", "vlan": 90, "subnet": "172.17.90.1/24", "mac": "", "loc": "عند بيت خالد مع أنتينة", "uplink": "من بيت خالد", "owner": "ملك الشبكة (حقي)", "startDate": "2026-06-15", "endDate": "2026-07-15", "user": "", "pwd": "", "notes": "حقي مع الأنتينة", "category": "بث رئيسي / محطة"}, {"id": 90, "name": "AP-91", "ip": "172.17.1.91", "vlan": 91, "subnet": "172.17.91.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 91, "name": "AP-92", "ip": "172.17.1.92", "vlan": 92, "subnet": "172.17.92.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 92, "name": "AP-93", "ip": "172.17.1.93", "vlan": 93, "subnet": "172.17.93.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 93, "name": "AP-94", "ip": "172.17.1.94", "vlan": 94, "subnet": "172.17.94.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 94, "name": "AP-95", "ip": "172.17.1.95", "vlan": 95, "subnet": "172.17.95.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 95, "name": "AP-96", "ip": "172.17.1.96", "vlan": 96, "subnet": "172.17.96.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 96, "name": "AP-97", "ip": "172.17.1.97", "vlan": 97, "subnet": "172.17.97.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 97, "name": "AP-98", "ip": "172.17.1.98", "vlan": 98, "subnet": "172.17.98.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 98, "name": "AP-99", "ip": "172.17.1.99", "vlan": 99, "subnet": "172.17.99.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 99, "name": "AP-100", "ip": "172.17.1.100", "vlan": 100, "subnet": "172.17.100.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 100, "name": "vlan1", "ip": "172.17.1.101", "vlan": 101, "subnet": "172.17.101.1/24", "mac": "24:5A:4C:06:C3:75", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 101, "name": "vlan2", "ip": "172.17.1.102", "vlan": 102, "subnet": "172.17.102.1/24", "mac": "E0:63:DA:12:4A:E7", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 102, "name": "vlan3", "ip": "172.17.1.103", "vlan": 103, "subnet": "172.17.103.1/24", "mac": "E0:63:DA:13:4B:01", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 103, "name": "vlan4", "ip": "172.17.1.104", "vlan": 104, "subnet": "172.17.104.1/24", "mac": "E0:63:DA:DE:77:9A", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 104, "name": "vlan5", "ip": "172.17.1.105", "vlan": 105, "subnet": "172.17.105.1/24", "mac": "70:A7:41:4E:95:AA", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 105, "name": "vlan6", "ip": "172.17.1.106", "vlan": 106, "subnet": "172.17.106.1/24", "mac": "E0:63:DA:D3:C2:92", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 106, "name": "vlan7", "ip": "172.17.1.107", "vlan": 107, "subnet": "172.17.107.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 107, "name": "vlan8", "ip": "172.17.1.108", "vlan": 108, "subnet": "172.17.108.1/24", "mac": "74:AC:B9:F1:41:1D", "loc": "عند مصنع البلك", "uplink": "من مصنع البلك", "owner": "ملك الشبكة (حقي)", "startDate": "2026-06-20", "endDate": "2026-07-20", "user": "", "pwd": "", "notes": "حقي - سويتش وأنتينة (احترق واحد)", "category": "بث رئيسي / محطة"}, {"id": 108, "name": "vlan9", "ip": "172.17.1.109", "vlan": 109, "subnet": "172.17.109.1/24", "mac": "74:AC:B9:F1:48:C9", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 109, "name": "vlan10", "ip": "172.17.1.110", "vlan": 110, "subnet": "172.17.110.1/24", "mac": "74:AC:B9:F1:4C:57", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 110, "name": "vlan11", "ip": "172.17.1.111", "vlan": 111, "subnet": "172.17.111.1/24", "mac": "74:AC:B9:F1:41:28", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 111, "name": "vlan12", "ip": "172.17.1.112", "vlan": 112, "subnet": "172.17.112.1/24", "mac": "70:A7:41:4F:17:BE", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 112, "name": "vlan13", "ip": "172.17.1.113", "vlan": 113, "subnet": "172.17.113.1/24", "mac": "E0:63:DA:DF:E5:D4", "loc": "محطة الربط اللاسلكي", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "2026-07-01", "endDate": "2026-07-31", "user": "", "pwd": "", "notes": "NanoStation M2 13 | NanoStation M2 13", "category": "بث رئيسي / محطة"}, {"id": 113, "name": "vlan14", "ip": "172.17.1.114", "vlan": 114, "subnet": "172.17.114.1/24", "mac": "70:A7:41:4E:83:1B", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 114, "name": "vlan15", "ip": "172.17.1.115", "vlan": 115, "subnet": "172.17.115.1/24", "mac": "E0:63:DA:DF:E4:17", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 115, "name": "vlan16", "ip": "172.17.1.116", "vlan": 116, "subnet": "172.17.116.1/24", "mac": "E0:63:DA:DF:77:A5", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 116, "name": "vlan17", "ip": "172.17.1.117", "vlan": 117, "subnet": "172.17.117.1/24", "mac": "E0:63:DA:13:4A:EA", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 117, "name": "vlan18", "ip": "172.17.1.118", "vlan": 118, "subnet": "172.17.118.1/24", "mac": "F4:92:BF:F5:98:50", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 118, "name": "vlan19", "ip": "172.17.1.119", "vlan": 119, "subnet": "172.17.119.1/24", "mac": "E0:63:DA:DF:77:85", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 119, "name": "vlan20", "ip": "172.17.1.120", "vlan": 120, "subnet": "172.17.120.1/24", "mac": "E0:63:DA:DF:77:71", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 120, "name": "vlan21", "ip": "172.17.1.121", "vlan": 121, "subnet": "172.17.121.1/24", "mac": "F4:92:BF:B1:C8:23", "loc": "", "uplink": "البرج الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 121, "name": "vlan22", "ip": "172.17.1.122", "vlan": 122, "subnet": "172.17.122.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 122, "name": "vlan23", "ip": "172.17.1.123", "vlan": 123, "subnet": "172.17.123.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 123, "name": "vlan24", "ip": "172.17.1.124", "vlan": 124, "subnet": "172.17.124.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 124, "name": "vlan25", "ip": "172.17.1.125", "vlan": 125, "subnet": "172.17.125.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 125, "name": "vlan26", "ip": "172.17.1.126", "vlan": 126, "subnet": "172.17.126.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 126, "name": "vlan27", "ip": "172.17.1.127", "vlan": 127, "subnet": "172.17.127.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 127, "name": "vlan28", "ip": "172.17.1.128", "vlan": 128, "subnet": "172.17.128.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 128, "name": "vlan29", "ip": "172.17.1.129", "vlan": 129, "subnet": "172.17.129.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 129, "name": "vlan30", "ip": "172.17.1.130", "vlan": 130, "subnet": "172.17.130.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 130, "name": "vlan31", "ip": "172.17.1.131", "vlan": 131, "subnet": "172.17.131.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 131, "name": "vlan32", "ip": "172.17.1.132", "vlan": 132, "subnet": "172.17.132.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 132, "name": "vlan33", "ip": "172.17.1.133", "vlan": 133, "subnet": "172.17.133.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 133, "name": "vlan34", "ip": "172.17.1.134", "vlan": 134, "subnet": "172.17.134.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 134, "name": "vlan35", "ip": "172.17.1.135", "vlan": 135, "subnet": "172.17.135.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 135, "name": "vlan36", "ip": "172.17.1.136", "vlan": 136, "subnet": "172.17.136.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 136, "name": "vlan37", "ip": "172.17.1.137", "vlan": 137, "subnet": "172.17.137.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 137, "name": "vlan38", "ip": "172.17.1.138", "vlan": 138, "subnet": "172.17.138.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 138, "name": "vlan39", "ip": "172.17.1.139", "vlan": 139, "subnet": "172.17.139.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 139, "name": "vlan40", "ip": "172.17.1.140", "vlan": 140, "subnet": "172.17.140.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 140, "name": "vlan41", "ip": "172.17.1.141", "vlan": 141, "subnet": "172.17.141.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 141, "name": "vlan42", "ip": "172.17.1.142", "vlan": 142, "subnet": "172.17.142.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 142, "name": "vlan43", "ip": "172.17.1.143", "vlan": 143, "subnet": "172.17.143.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 143, "name": "vlan44", "ip": "172.17.1.144", "vlan": 144, "subnet": "172.17.144.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 144, "name": "vlan45", "ip": "172.17.1.145", "vlan": 145, "subnet": "172.17.145.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 145, "name": "vlan46", "ip": "172.17.1.146", "vlan": 146, "subnet": "172.17.146.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 146, "name": "vlan47", "ip": "172.17.1.147", "vlan": 147, "subnet": "172.17.147.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 147, "name": "vlan48", "ip": "172.17.1.148", "vlan": 148, "subnet": "172.17.148.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 148, "name": "vlan49", "ip": "172.17.1.149", "vlan": 149, "subnet": "172.17.149.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 149, "name": "AP-150", "ip": "172.17.1.150", "vlan": 150, "subnet": "172.17.150.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 150, "name": "AP-151", "ip": "172.17.1.151", "vlan": 151, "subnet": "172.17.151.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 151, "name": "AP-152", "ip": "172.17.1.152", "vlan": 152, "subnet": "172.17.152.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 152, "name": "AP-153", "ip": "172.17.1.153", "vlan": 153, "subnet": "172.17.153.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 153, "name": "AP-154", "ip": "172.17.1.154", "vlan": 154, "subnet": "172.17.154.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 154, "name": "AP-155", "ip": "172.17.1.155", "vlan": 155, "subnet": "172.17.155.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 155, "name": "AP-156", "ip": "172.17.1.156", "vlan": 156, "subnet": "172.17.156.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 156, "name": "AP-157", "ip": "172.17.1.157", "vlan": 157, "subnet": "172.17.157.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 157, "name": "AP-158", "ip": "172.17.1.158", "vlan": 158, "subnet": "172.17.158.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 158, "name": "AP-159", "ip": "172.17.1.159", "vlan": 159, "subnet": "172.17.159.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 159, "name": "AP-160", "ip": "172.17.1.160", "vlan": 160, "subnet": "172.17.160.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 160, "name": "AP-161", "ip": "172.17.1.161", "vlan": 161, "subnet": "172.17.161.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 161, "name": "AP-162", "ip": "172.17.1.162", "vlan": 162, "subnet": "172.17.162.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 162, "name": "AP-163", "ip": "172.17.1.163", "vlan": 163, "subnet": "172.17.163.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 163, "name": "AP-164", "ip": "172.17.1.164", "vlan": 164, "subnet": "172.17.164.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 164, "name": "AP-165", "ip": "172.17.1.165", "vlan": 165, "subnet": "172.17.165.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 165, "name": "AP-166", "ip": "172.17.1.166", "vlan": 166, "subnet": "172.17.166.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 166, "name": "AP-167", "ip": "172.17.1.167", "vlan": 167, "subnet": "172.17.167.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 167, "name": "AP-168", "ip": "172.17.1.168", "vlan": 168, "subnet": "172.17.168.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 168, "name": "AP-169", "ip": "172.17.1.169", "vlan": 169, "subnet": "172.17.169.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 169, "name": "AP-170", "ip": "172.17.1.170", "vlan": 170, "subnet": "172.17.170.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 170, "name": "AP-171", "ip": "172.17.1.171", "vlan": 171, "subnet": "172.17.171.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 171, "name": "AP-172", "ip": "172.17.1.172", "vlan": 172, "subnet": "172.17.172.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 172, "name": "AP-173", "ip": "172.17.1.173", "vlan": 173, "subnet": "172.17.173.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 173, "name": "AP-174", "ip": "172.17.1.174", "vlan": 174, "subnet": "172.17.174.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 174, "name": "AP-175", "ip": "172.17.1.175", "vlan": 175, "subnet": "172.17.175.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 175, "name": "AP-176", "ip": "172.17.1.176", "vlan": 176, "subnet": "172.17.176.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 176, "name": "AP-177", "ip": "172.17.1.177", "vlan": 177, "subnet": "172.17.177.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 177, "name": "AP-178", "ip": "172.17.1.178", "vlan": 178, "subnet": "172.17.178.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 178, "name": "AP-179", "ip": "172.17.1.179", "vlan": 179, "subnet": "172.17.179.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 179, "name": "AP-180", "ip": "172.17.1.180", "vlan": 180, "subnet": "172.17.180.1/24", "mac": "5C:62:8B:53:EB:04", "loc": "كابينة الإدارة والبرج", "uplink": "السيرفر الرئيسي", "owner": "ملك الشبكة (حقي)", "startDate": "2026-07-15", "endDate": "2026-08-14", "user": "admin", "pwd": "nayefmhmod736661655", "notes": "تيبي لينك | راوتر TP-Link الإداري", "category": "بث رئيسي / محطة"}, {"id": 180, "name": "AP-181", "ip": "172.17.1.181", "vlan": 181, "subnet": "172.17.181.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 181, "name": "AP-182", "ip": "172.17.1.182", "vlan": 182, "subnet": "172.17.182.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 182, "name": "AP-183", "ip": "172.17.1.183", "vlan": 183, "subnet": "172.17.183.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 183, "name": "AP-184", "ip": "172.17.1.184", "vlan": 184, "subnet": "172.17.184.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 184, "name": "AP-185", "ip": "172.17.1.185", "vlan": 185, "subnet": "172.17.185.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 185, "name": "AP-186", "ip": "172.17.1.186", "vlan": 186, "subnet": "172.17.186.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 186, "name": "AP-187", "ip": "172.17.1.187", "vlan": 187, "subnet": "172.17.187.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 187, "name": "AP-188", "ip": "172.17.1.188", "vlan": 188, "subnet": "172.17.188.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 188, "name": "AP-189", "ip": "172.17.1.189", "vlan": 189, "subnet": "172.17.189.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 189, "name": "AP-190", "ip": "172.17.1.190", "vlan": 190, "subnet": "172.17.190.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 190, "name": "AP-191", "ip": "172.17.1.191", "vlan": 191, "subnet": "172.17.191.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 191, "name": "AP-192", "ip": "172.17.1.192", "vlan": 192, "subnet": "172.17.192.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 192, "name": "AP-193", "ip": "172.17.1.193", "vlan": 193, "subnet": "172.17.193.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 193, "name": "AP-194", "ip": "172.17.1.194", "vlan": 194, "subnet": "172.17.194.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 194, "name": "AP-195", "ip": "172.17.1.195", "vlan": 195, "subnet": "172.17.195.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 195, "name": "AP-196", "ip": "172.17.1.196", "vlan": 196, "subnet": "172.17.196.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 196, "name": "AP-197", "ip": "172.17.1.197", "vlan": 197, "subnet": "172.17.197.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 197, "name": "AP-198", "ip": "172.17.1.198", "vlan": 198, "subnet": "172.17.198.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 198, "name": "AP-199", "ip": "172.17.1.199", "vlan": 199, "subnet": "172.17.199.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 199, "name": "vlan200", "ip": "172.17.1.200", "vlan": 200, "subnet": "172.17.200.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 200, "name": "vlan201", "ip": "172.17.1.201", "vlan": 201, "subnet": "172.17.201.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 201, "name": "vlan202", "ip": "172.17.1.202", "vlan": 202, "subnet": "172.17.202.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 202, "name": "vlan203", "ip": "172.17.1.203", "vlan": 203, "subnet": "172.17.203.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 203, "name": "vlan204", "ip": "172.17.1.204", "vlan": 204, "subnet": "172.17.204.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 204, "name": "vlan205", "ip": "172.17.1.205", "vlan": 205, "subnet": "172.17.205.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 205, "name": "vlan206", "ip": "172.17.1.206", "vlan": 206, "subnet": "172.17.206.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 206, "name": "vlan207", "ip": "172.17.1.207", "vlan": 207, "subnet": "172.17.207.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 207, "name": "vlan208", "ip": "172.17.1.208", "vlan": 208, "subnet": "172.17.208.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 208, "name": "vlan209", "ip": "172.17.1.209", "vlan": 209, "subnet": "172.17.209.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 209, "name": "vlan210", "ip": "172.17.1.210", "vlan": 210, "subnet": "172.17.210.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 210, "name": "vlan211", "ip": "172.17.1.211", "vlan": 211, "subnet": "172.17.211.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 211, "name": "vlan212", "ip": "172.17.1.212", "vlan": 212, "subnet": "172.17.212.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 212, "name": "vlan213", "ip": "172.17.1.213", "vlan": 213, "subnet": "172.17.213.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 213, "name": "vlan214", "ip": "172.17.1.214", "vlan": 214, "subnet": "172.17.214.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 214, "name": "vlan215", "ip": "172.17.1.215", "vlan": 215, "subnet": "172.17.215.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 215, "name": "vlan216", "ip": "172.17.1.216", "vlan": 216, "subnet": "172.17.216.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 216, "name": "vlan217", "ip": "172.17.1.217", "vlan": 217, "subnet": "172.17.217.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 217, "name": "vlan218", "ip": "172.17.1.218", "vlan": 218, "subnet": "172.17.218.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 218, "name": "vlan219", "ip": "172.17.1.219", "vlan": 219, "subnet": "172.17.219.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 219, "name": "vlan220", "ip": "172.17.1.220", "vlan": 220, "subnet": "172.17.220.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 220, "name": "vlan221", "ip": "172.17.1.221", "vlan": 221, "subnet": "172.17.221.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 221, "name": "vlan222", "ip": "172.17.1.222", "vlan": 222, "subnet": "172.17.222.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 222, "name": "vlan223", "ip": "172.17.1.223", "vlan": 223, "subnet": "172.17.223.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 223, "name": "vlan224", "ip": "172.17.1.224", "vlan": 224, "subnet": "172.17.224.1/24", "mac": "68:D7:9A:BA:09:A8", "loc": "مدرسة الأثرية", "uplink": "البرج الرئيسي - قطاع N4", "owner": "ملك الشبكة (حقي)", "startDate": "2026-08-01", "endDate": "2026-08-31", "user": "", "pwd": "", "notes": "N4-athrya224 madrsh athrea | N4-athrya224 madrsh athrea", "category": "بث رئيسي / محطة"}, {"id": 224, "name": "vlan225", "ip": "172.17.1.225", "vlan": 225, "subnet": "172.17.225.1/24", "mac": "68:D7:9A:90:B1:A6", "loc": "ستيشن المبرة", "uplink": "البرج الرئيسي - قطاع N4", "owner": "ملك الشبكة (حقي)", "startDate": "2026-08-10", "endDate": "2026-09-09", "user": "", "pwd": "", "notes": "N4-ST-almbra | N4-ST-almbra", "category": "بث رئيسي / محطة"}, {"id": 225, "name": "vlan226", "ip": "172.17.1.226", "vlan": 226, "subnet": "172.17.226.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 226, "name": "vlan227", "ip": "172.17.1.227", "vlan": 227, "subnet": "172.17.227.1/24", "mac": "68:D7:9A:BA:13:26", "loc": "محطة الوفاء", "uplink": "البرج الرئيسي - قطاع U1", "owner": "ملك الشبكة (حقي)", "startDate": "2022-10-10", "endDate": "2022-11-09", "user": "", "pwd": "", "notes": "U1-alwafa2022-10-10 | U1-alwafa2022-10-10", "category": "بث رئيسي / محطة"}, {"id": 227, "name": "vlan228", "ip": "172.17.1.228", "vlan": 228, "subnet": "172.17.228.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 228, "name": "vlan229", "ip": "172.17.1.229", "vlan": 229, "subnet": "172.17.229.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 229, "name": "vlan230", "ip": "172.17.1.230", "vlan": 230, "subnet": "172.17.230.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 230, "name": "vlan231", "ip": "172.17.1.231", "vlan": 231, "subnet": "172.17.231.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 231, "name": "vlan232", "ip": "172.17.1.232", "vlan": 232, "subnet": "172.17.232.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 232, "name": "vlan233", "ip": "172.17.1.233", "vlan": 233, "subnet": "172.17.233.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 233, "name": "vlan234", "ip": "172.17.1.234", "vlan": 234, "subnet": "172.17.234.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 234, "name": "vlan235", "ip": "172.17.1.235", "vlan": 235, "subnet": "172.17.235.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 235, "name": "vlan236", "ip": "172.17.1.236", "vlan": 236, "subnet": "172.17.236.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 236, "name": "vlan237", "ip": "172.17.1.237", "vlan": 237, "subnet": "172.17.237.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 237, "name": "vlan238", "ip": "172.17.1.238", "vlan": 238, "subnet": "172.17.238.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 238, "name": "vlan239", "ip": "172.17.1.239", "vlan": 239, "subnet": "172.17.239.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 239, "name": "vlan240", "ip": "172.17.1.240", "vlan": 240, "subnet": "172.17.240.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 240, "name": "vlan241", "ip": "172.17.1.241", "vlan": 241, "subnet": "172.17.241.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 241, "name": "vlan242", "ip": "172.17.1.242", "vlan": 242, "subnet": "172.17.242.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 242, "name": "vlan243", "ip": "172.17.1.243", "vlan": 243, "subnet": "172.17.243.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 243, "name": "vlan244", "ip": "172.17.1.244", "vlan": 244, "subnet": "172.17.244.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 244, "name": "vlan245", "ip": "172.17.1.245", "vlan": 245, "subnet": "172.17.245.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 245, "name": "vlan246", "ip": "172.17.1.246", "vlan": 246, "subnet": "172.17.246.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 246, "name": "vlan247", "ip": "172.17.1.247", "vlan": 247, "subnet": "172.17.247.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 247, "name": "vlan248", "ip": "172.17.1.248", "vlan": 248, "subnet": "172.17.248.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 248, "name": "vlan249", "ip": "172.17.1.249", "vlan": 249, "subnet": "172.17.249.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 249, "name": "vlan250", "ip": "172.17.1.250", "vlan": 250, "subnet": "172.17.250.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 250, "name": "vlan251", "ip": "172.17.1.251", "vlan": 251, "subnet": "172.17.251.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 251, "name": "vlan252", "ip": "172.17.1.252", "vlan": 252, "subnet": "172.17.252.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 252, "name": "vlan253", "ip": "172.17.1.253", "vlan": 253, "subnet": "172.17.253.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 253, "name": "vlan254", "ip": "172.17.1.254", "vlan": 254, "subnet": "172.17.254.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 254, "name": "vlan255", "ip": "172.17.1.255", "vlan": 255, "subnet": "172.17.255.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 255, "name": "vlan256", "ip": "172.17.1.256", "vlan": 256, "subnet": "172.17.256.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 256, "name": "vlan257", "ip": "172.17.1.257", "vlan": 257, "subnet": "172.17.257.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 257, "name": "vlan258", "ip": "172.17.1.258", "vlan": 258, "subnet": "172.17.258.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 258, "name": "vlan259", "ip": "172.17.1.259", "vlan": 259, "subnet": "172.17.259.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 259, "name": "vlan260", "ip": "172.17.1.260", "vlan": 260, "subnet": "172.17.260.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 260, "name": "302", "ip": "172.18.1.2", "vlan": 302, "subnet": "172.18.2.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 261, "name": "303", "ip": "172.18.1.3", "vlan": 303, "subnet": "172.18.3.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 262, "name": "304", "ip": "172.18.1.4", "vlan": 304, "subnet": "172.18.4.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 263, "name": "305", "ip": "172.18.1.5", "vlan": 305, "subnet": "172.18.5.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 264, "name": "306", "ip": "172.18.1.6", "vlan": 306, "subnet": "172.18.6.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 265, "name": "307", "ip": "172.18.1.7", "vlan": 307, "subnet": "172.18.7.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 266, "name": "308", "ip": "172.18.1.8", "vlan": 308, "subnet": "172.18.8.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 267, "name": "309", "ip": "172.18.1.9", "vlan": 309, "subnet": "172.18.9.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 268, "name": "310", "ip": "172.18.1.10", "vlan": 310, "subnet": "172.18.10.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 269, "name": "311", "ip": "172.18.1.11", "vlan": 311, "subnet": "172.18.11.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 270, "name": "312", "ip": "172.18.1.12", "vlan": 312, "subnet": "172.18.12.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 271, "name": "313", "ip": "172.18.1.13", "vlan": 313, "subnet": "172.18.13.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 272, "name": "314", "ip": "172.18.1.14", "vlan": 314, "subnet": "172.18.14.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 273, "name": "315", "ip": "172.18.1.15", "vlan": 315, "subnet": "172.18.15.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 274, "name": "316", "ip": "172.18.1.16", "vlan": 316, "subnet": "172.18.16.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 275, "name": "317", "ip": "172.18.1.17", "vlan": 317, "subnet": "172.18.17.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 276, "name": "318", "ip": "172.18.1.18", "vlan": 318, "subnet": "172.18.18.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 277, "name": "319", "ip": "172.18.1.19", "vlan": 319, "subnet": "172.18.19.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 278, "name": "320", "ip": "172.18.1.20", "vlan": 320, "subnet": "172.18.20.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 279, "name": "321", "ip": "172.18.1.21", "vlan": 321, "subnet": "172.18.21.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 280, "name": "322", "ip": "172.18.1.22", "vlan": 322, "subnet": "172.18.22.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 281, "name": "323", "ip": "172.18.1.23", "vlan": 323, "subnet": "172.18.23.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 282, "name": "324", "ip": "172.18.1.24", "vlan": 324, "subnet": "172.18.24.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 283, "name": "325", "ip": "172.18.1.25", "vlan": 325, "subnet": "172.18.25.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 284, "name": "326", "ip": "172.18.1.26", "vlan": 326, "subnet": "172.18.26.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 285, "name": "327", "ip": "172.18.1.27", "vlan": 327, "subnet": "172.18.27.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 286, "name": "328", "ip": "172.18.1.28", "vlan": 328, "subnet": "172.18.28.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 287, "name": "329", "ip": "172.18.1.29", "vlan": 329, "subnet": "172.18.29.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 288, "name": "330", "ip": "172.18.1.30", "vlan": 330, "subnet": "172.18.30.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 289, "name": "331", "ip": "172.18.1.31", "vlan": 331, "subnet": "172.18.31.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 290, "name": "332", "ip": "172.18.1.32", "vlan": 332, "subnet": "172.18.32.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 291, "name": "333", "ip": "172.18.1.33", "vlan": 333, "subnet": "172.18.33.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 292, "name": "334", "ip": "172.18.1.34", "vlan": 334, "subnet": "172.18.34.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 293, "name": "335", "ip": "172.18.1.35", "vlan": 335, "subnet": "172.18.35.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 294, "name": "336", "ip": "172.18.1.36", "vlan": 336, "subnet": "172.18.36.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 295, "name": "337", "ip": "172.18.1.37", "vlan": 337, "subnet": "172.18.37.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 296, "name": "338", "ip": "172.18.1.38", "vlan": 338, "subnet": "172.18.38.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 297, "name": "339", "ip": "172.18.1.39", "vlan": 339, "subnet": "172.18.39.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 298, "name": "340", "ip": "172.18.1.40", "vlan": 340, "subnet": "172.18.40.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 299, "name": "341", "ip": "172.18.1.41", "vlan": 341, "subnet": "172.18.41.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 300, "name": "342", "ip": "172.18.1.42", "vlan": 342, "subnet": "172.18.42.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 301, "name": "343", "ip": "172.18.1.43", "vlan": 343, "subnet": "172.18.43.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 302, "name": "344", "ip": "172.18.1.44", "vlan": 344, "subnet": "172.18.44.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 303, "name": "345", "ip": "172.18.1.45", "vlan": 345, "subnet": "172.18.45.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 304, "name": "346", "ip": "172.18.1.46", "vlan": 346, "subnet": "172.18.46.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 305, "name": "347", "ip": "172.18.1.47", "vlan": 347, "subnet": "172.18.47.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 306, "name": "348", "ip": "172.18.1.48", "vlan": 348, "subnet": "172.18.48.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 307, "name": "349", "ip": "172.18.1.49", "vlan": 349, "subnet": "172.18.49.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 308, "name": "350", "ip": "172.18.1.50", "vlan": 350, "subnet": "172.18.50.1/24", "mac": "", "loc": "عند أبي (الوالد)", "uplink": "مباشر من الشبكة", "owner": "ملك الشبكة (حقي)", "startDate": "2026-09-01", "endDate": "2026-10-01", "user": "", "pwd": "", "notes": "خط منزلي دائم للوالد", "category": "بث رئيسي / محطة"}, {"id": 309, "name": "351", "ip": "172.18.1.51", "vlan": 351, "subnet": "172.18.51.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 310, "name": "352", "ip": "172.18.1.52", "vlan": 352, "subnet": "172.18.52.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 311, "name": "353", "ip": "172.18.1.53", "vlan": 353, "subnet": "172.18.53.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 312, "name": "354", "ip": "172.18.1.54", "vlan": 354, "subnet": "172.18.54.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 313, "name": "355", "ip": "172.18.1.55", "vlan": 355, "subnet": "172.18.55.1/24", "mac": "00:07:89:59:3A:C9", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 314, "name": "356", "ip": "172.18.1.56", "vlan": 356, "subnet": "172.18.56.1/24", "mac": "00:07:89:36:53:0C", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 315, "name": "357", "ip": "172.18.1.57", "vlan": 357, "subnet": "172.18.57.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 316, "name": "358", "ip": "172.18.1.58", "vlan": 358, "subnet": "172.18.58.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 317, "name": "359", "ip": "172.18.1.59", "vlan": 359, "subnet": "172.18.59.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 318, "name": "360", "ip": "172.18.1.60", "vlan": 360, "subnet": "172.18.60.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 319, "name": "361", "ip": "172.18.1.61", "vlan": 361, "subnet": "172.18.61.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 320, "name": "362", "ip": "172.18.1.62", "vlan": 362, "subnet": "172.18.62.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 321, "name": "363", "ip": "172.18.1.63", "vlan": 363, "subnet": "172.18.63.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 322, "name": "364", "ip": "172.18.1.64", "vlan": 364, "subnet": "172.18.64.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 323, "name": "365", "ip": "172.18.1.65", "vlan": 365, "subnet": "172.18.65.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 324, "name": "366", "ip": "172.18.1.66", "vlan": 366, "subnet": "172.18.66.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 325, "name": "367", "ip": "172.18.1.67", "vlan": 367, "subnet": "172.18.67.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 326, "name": "368", "ip": "172.18.1.68", "vlan": 368, "subnet": "172.18.68.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 327, "name": "369", "ip": "172.18.1.69", "vlan": 369, "subnet": "172.18.69.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 328, "name": "370", "ip": "172.18.1.70", "vlan": 370, "subnet": "172.18.70.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 329, "name": "371", "ip": "172.18.1.71", "vlan": 371, "subnet": "172.18.71.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 330, "name": "372", "ip": "172.18.1.72", "vlan": 372, "subnet": "172.18.72.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 331, "name": "373", "ip": "172.18.1.73", "vlan": 373, "subnet": "172.18.73.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 332, "name": "374", "ip": "172.18.1.74", "vlan": 374, "subnet": "172.18.74.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 333, "name": "375", "ip": "172.18.1.75", "vlan": 375, "subnet": "172.18.75.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 334, "name": "376", "ip": "172.18.1.76", "vlan": 376, "subnet": "172.18.76.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 335, "name": "377", "ip": "172.18.1.77", "vlan": 377, "subnet": "172.18.77.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 336, "name": "378", "ip": "172.18.1.78", "vlan": 378, "subnet": "172.18.78.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 337, "name": "379", "ip": "172.18.1.79", "vlan": 379, "subnet": "172.18.79.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 338, "name": "380", "ip": "172.18.1.80", "vlan": 380, "subnet": "172.18.80.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 339, "name": "381", "ip": "172.18.1.81", "vlan": 381, "subnet": "172.18.81.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 340, "name": "382", "ip": "172.18.1.82", "vlan": 382, "subnet": "172.18.82.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 341, "name": "383", "ip": "172.18.1.83", "vlan": 383, "subnet": "172.18.83.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 342, "name": "384", "ip": "172.18.1.84", "vlan": 384, "subnet": "172.18.84.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 343, "name": "385", "ip": "172.18.1.85", "vlan": 385, "subnet": "172.18.85.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 344, "name": "386", "ip": "172.18.1.86", "vlan": 386, "subnet": "172.18.86.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 345, "name": "387", "ip": "172.18.1.87", "vlan": 387, "subnet": "172.18.87.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 346, "name": "388", "ip": "172.18.1.88", "vlan": 388, "subnet": "172.18.88.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 347, "name": "389", "ip": "172.18.1.89", "vlan": 389, "subnet": "172.18.89.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 348, "name": "390", "ip": "172.18.1.90", "vlan": 390, "subnet": "172.18.90.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 349, "name": "391", "ip": "172.18.1.91", "vlan": 391, "subnet": "172.18.91.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 350, "name": "392", "ip": "172.18.1.92", "vlan": 392, "subnet": "172.18.92.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 351, "name": "393", "ip": "172.18.1.93", "vlan": 393, "subnet": "172.18.93.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 352, "name": "394", "ip": "172.18.1.94", "vlan": 394, "subnet": "172.18.94.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 353, "name": "395", "ip": "172.18.1.95", "vlan": 395, "subnet": "172.18.95.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 354, "name": "396", "ip": "172.18.1.96", "vlan": 396, "subnet": "172.18.96.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 355, "name": "397", "ip": "172.18.1.97", "vlan": 397, "subnet": "172.18.97.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 356, "name": "398", "ip": "172.18.1.98", "vlan": 398, "subnet": "172.18.98.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}, {"id": 357, "name": "399", "ip": "172.18.1.99", "vlan": 399, "subnet": "172.18.99.1/24", "mac": "", "loc": "", "uplink": "", "owner": "ملك المشترك (حقه)", "startDate": "", "endDate": "", "user": "", "pwd": "", "notes": "", "category": "نقطة فرعية / مشترك"}];
+let devices = [];
+let saveHistory = [];
+
+// Helper to get formatted Date and Time string for filenames and logs
+function getFormattedTimestamp() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  return {
+    fileStamp: `${yyyy}-${mm}-${dd}_الوقت_${hh}-${min}-${ss}`,
+    readable: `${yyyy}/${mm}/${dd} - الساعة ${hh}:${min}:${ss}`
+  };
+}
+
+function loadData() {
+  const saved = localStorage.getItem('naif_net_v4_devices');
+  if (saved) {
+    try {
+      devices = JSON.parse(saved);
+    } catch(e) {
+      devices = [...DEFAULT_DEVICES];
+    }
+  } else {
+    const oldSaved = localStorage.getItem('naif_net_v3_devices');
+    if (oldSaved) {
+      try { devices = JSON.parse(oldSaved); } catch(e) { devices = [...DEFAULT_DEVICES]; }
+    } else {
+      devices = [...DEFAULT_DEVICES];
+    }
+  }
+
+  const savedHist = localStorage.getItem('naif_net_v4_history');
+  if (savedHist) {
+    try { saveHistory = JSON.parse(savedHist); } catch(e) { saveHistory = []; }
+  }
+
+  const lastTime = localStorage.getItem('naif_net_v4_last_time') || getFormattedTimestamp().readable;
+  document.getElementById('lastSavedTime').innerText = lastTime;
+
+  loadCloudConfig();
+  updateStats();
+  populateAutocomplete();
+  renderTable();
+  renderBroadcast();
+  renderFamily();
+  renderHistory();
+}
+
+function addHistoryEntry(actionTitle) {
+  const ts = getFormattedTimestamp();
+  saveHistory.unshift({ time: ts.readable, action: actionTitle, count: devices.length });
+  if (saveHistory.length > 25) saveHistory.pop();
+  localStorage.setItem('naif_net_v4_history', JSON.stringify(saveHistory));
+  localStorage.setItem('naif_net_v4_last_time', ts.readable);
+  document.getElementById('lastSavedTime').innerText = ts.readable;
+  renderHistory();
+}
+
+function renderHistory() {
+  const el = document.getElementById('historyList');
+  if (!el) return;
+  if (!saveHistory.length) {
+    el.innerHTML = 'لا توجد عمليات مسجلة بعد.';
+    return;
+  }
+  el.innerHTML = saveHistory.map(h => `<div>🕒 <strong>[${h.time}]</strong> — ${h.action} (إجمالي الأجهزة: ${h.count})</div>`).join('');
+}
+
+function saveData(actionTitle = 'تحديث وحفظ البيانات') {
+  localStorage.setItem('naif_net_v4_devices', JSON.stringify(devices));
+  addHistoryEntry(actionTitle);
+  updateStats();
+  populateAutocomplete();
+  renderTable();
+  renderBroadcast();
+  renderFamily();
+
+  // Trigger Cloud Sync Automatically
+  syncToCloudNow(false);
+
+  // Trigger Auto-Download if enabled
+  const autoDl = document.getElementById('autoDownloadMode').value;
+  if (autoDl === 'ON_SAVE') {
+    downloadBackup();
+  }
+}
+
+function loadCloudConfig() {
+  const cfgStr = localStorage.getItem('naif_net_v4_cloud_cfg');
+  if (cfgStr) {
+    try {
+      const cfg = JSON.parse(cfgStr);
+      document.getElementById('cloudUrl').value = cfg.cloudUrl || '';
+      document.getElementById('tgBotToken').value = cfg.tgBotToken || '';
+      document.getElementById('tgChatId').value = cfg.tgChatId || '';
+      document.getElementById('autoDownloadMode').value = cfg.autoDownloadMode || 'OFF';
+      updateCloudBadge(cfg);
+    } catch(e) {}
+  }
+}
+
+function saveCloudConfig() {
+  const cfg = {
+    cloudUrl: document.getElementById('cloudUrl').value.trim(),
+    tgBotToken: document.getElementById('tgBotToken').value.trim(),
+    tgChatId: document.getElementById('tgChatId').value.trim(),
+    autoDownloadMode: document.getElementById('autoDownloadMode').value
+  };
+  localStorage.setItem('naif_net_v4_cloud_cfg', JSON.stringify(cfg));
+  updateCloudBadge(cfg);
+  addHistoryEntry('حفظ وتحديث إعدادات الربط السحابي');
+  alert('تم حفظ إعدادات السحابة والنسخ التلقائي بنجاح!');
+}
+
+function updateCloudBadge(cfg) {
+  const badge = document.getElementById('cloudBadge');
+  const statCloud = document.getElementById('statCloud');
+  if ((cfg.cloudUrl && cfg.cloudUrl.startsWith('http')) || (cfg.tgBotToken && cfg.tgChatId)) {
+    badge.className = 'cloud-status no-print';
+    badge.innerText = '☁️ المزامنة السحابية التلقائية: مفعّلة ونشطة';
+    statCloud.innerText = 'متصل بالسحابة ☁️';
+    statCloud.style.color = '#34d399';
+  } else {
+    badge.className = 'cloud-status offline no-print';
+    badge.innerText = '☁️ الحفظ التلقائي: محلي (جاهز للربط السحابي)';
+    statCloud.innerText = 'حفظ محلي فوري';
+    statCloud.style.color = '#c4b5fd';
+  }
+}
+
+async function syncToCloudNow(isManual = false) {
+  const cfgStr = localStorage.getItem('naif_net_v4_cloud_cfg');
+  if (!cfgStr) {
+    if (isManual) alert('يرجى إدخال رابط السحابة أو بيانات بوت تيليجرام أولاً ثم الضغط على حفظ الإعدادات.');
+    return;
+  }
+  const cfg = JSON.parse(cfgStr);
+  const ts = getFormattedTimestamp();
+  const logEl = document.getElementById('cloudLog');
+  const payload = {
+    network: "شبكة نائف نت اللاسلكية",
+    owner: "نائف محمود الصراري",
+    phone: "736661655",
+    backupTimestamp: ts.readable,
+    fileStamp: ts.fileStamp,
+    totalDevices: devices.length,
+    devices: devices
+  };
+
+  let syncedAny = false;
+
+  // 1. Sync to Firebase / Cloud Webhook
+  if (cfg.cloudUrl && cfg.cloudUrl.startsWith('http')) {
+    try {
+      const method = cfg.cloudUrl.includes('firebaseio.com') ? 'PUT' : 'POST';
+      await fetch(cfg.cloudUrl, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      syncedAny = true;
+      if (logEl) logEl.innerText = `✅ تمت المزامنة السحابية بنجاح بتوقيت: ${ts.readable}`;
+    } catch (err) {
+      if (logEl) logEl.innerText = `⚠️ تعذر الوصول لرابط السحابة حالياً (محفوظ محلياً): ${err.message}`;
+    }
+  }
+
+  // 2. Send timestamped backup file to Telegram Bot (Cloud storage on Telegram)
+  if (cfg.tgBotToken && cfg.tgChatId) {
+    try {
+      const fileName = `شبكة_نائف_نت_نسخة_${ts.fileStamp}.json`;
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const formData = new FormData();
+      formData.append('chat_id', cfg.tgChatId);
+      formData.append('caption', `☁️ نسخة احتياطية تلقائية - شبكة نائف نت\n📅 التاريخ والوقت: ${ts.readable}\n📊 عدد الأجهزة: ${devices.length}`);
+      formData.append('document', blob, fileName);
+
+      await fetch(`https://api.telegram.org/bot${cfg.tgBotToken}/sendDocument`, {
+        method: 'POST',
+        body: formData
+      });
+      syncedAny = true;
+      if (logEl) logEl.innerText = `✅ تم إرسال النسخة المؤرخة (${fileName}) إلى سحابة تيليجرام بنجاح!`;
+    } catch (err) {
+      if (logEl) logEl.innerText = `⚠️ تعذر الإرسال لتيليجرام حالياً: ${err.message}`;
+    }
+  }
+
+  if (isManual && !syncedAny) {
+    alert('يرجى التأكد من وضع رابط سحابي صحيح أو توكن ومعرف تيليجرام.');
+  } else if (isManual && syncedAny) {
+    addHistoryEntry('مزامنة سحابية يدوية ناجحة');
+  }
+}
+
+async function pullFromCloudNow() {
+  const cfgStr = localStorage.getItem('naif_net_v4_cloud_cfg');
+  if (!cfgStr) {
+    alert('يرجى إعداد رابط السحابة أولاً.');
+    return;
+  }
+  const cfg = JSON.parse(cfgStr);
+  if (!cfg.cloudUrl || !cfg.cloudUrl.startsWith('http')) {
+    alert('يرجى إدخال رابط قاعدة البيانات السحابية أولاً.');
+    return;
+  }
+  try {
+    const res = await fetch(cfg.cloudUrl);
+    const data = await res.json();
+    if (data && Array.isArray(data.devices)) {
+      devices = data.devices;
+      saveData(`استرجاع نسخة من السحابة مؤرخة بـ (${data.backupTimestamp || 'غير محدد'})`);
+      alert(`تم استرجاع ${devices.length} جهازاً من السحابة بنجاح!`);
+    } else {
+      alert('لم يتم العثور على بيانات أجهزة صالحة في الرابط السحابي.');
+    }
+  } catch (err) {
+    alert('حدث خطأ أثناء الاتصال بالسحابة: ' + err.message);
+  }
+}
+
+function autoFillFromVlan() {
+  const v = parseInt(document.getElementById('fVlan').value);
+  if (!v || isNaN(v)) return;
+  if (v >= 302) {
+    const subOctet = v - 300;
+    document.getElementById('fIp').value = `172.18.1.${subOctet}`;
+    document.getElementById('fSubnet').value = `172.18.${subOctet}.1/24`;
+    if (!document.getElementById('editId').value) {
+      document.getElementById('fName').value = `${v}`;
+    }
+  } else {
+    document.getElementById('fIp').value = `172.17.1.${v}`;
+    document.getElementById('fSubnet').value = `172.17.${v}.1/24`;
+    if (!document.getElementById('editId').value) {
+      document.getElementById('fName').value = `AP-${v}`;
+    }
+  }
+}
+
+function autoSetEndDate() {
+  const s = document.getElementById('fStartDate').value;
+  if (s && !document.getElementById('fEndDate').value) {
+    const d = new Date(s);
+    d.setDate(d.getDate() + 30);
+    document.getElementById('fEndDate').value = d.toISOString().split('T')[0];
+  }
+}
+
+function populateAutocomplete() {
+  const locs = new Set();
+  const uplinks = new Set();
+  const notes = new Set();
+  devices.forEach(d => {
+    if (d.loc) locs.add(d.loc);
+    if (d.uplink) uplinks.add(d.uplink);
+    if (d.notes) notes.add(d.notes);
+  });
+  document.getElementById('locList').innerHTML = Array.from(locs).map(x => `<option value="${x}">`).join('');
+  document.getElementById('uplinkList').innerHTML = Array.from(uplinks).map(x => `<option value="${x}">`).join('');
+  document.getElementById('notesList').innerHTML = Array.from(notes).map(x => `<option value="${x}">`).join('');
+}
+
+function updateStats() {
+  document.getElementById('statTotal').innerText = devices.length;
+  document.getElementById('statMine').innerText = devices.filter(d => d.owner && d.owner.includes('حقي')).length;
+  document.getElementById('statV17').innerText = devices.filter(d => d.ip && d.ip.startsWith('172.17.')).length;
+  document.getElementById('statV18').innerText = devices.filter(d => d.ip && d.ip.startsWith('172.18.')).length;
+}
+
+function renderTable() {
+  const q = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+  const fOwner = document.getElementById('filterOwner').value;
+  const fRange = document.getElementById('filterRange').value;
+
+  const filtered = devices.filter(d => {
+    if (fOwner !== 'ALL' && !(d.owner || '').includes(fOwner)) return false;
+    if (fRange === '172.17' && !(d.ip || '').startsWith('172.17.')) return false;
+    if (fRange === '172.18' && !(d.ip || '').startsWith('172.18.')) return false;
+    if (fRange === 'ACTIVE_INFO' && !d.loc && !d.mac && !d.notes) return false;
+    if (!q) return true;
+    const hay = `${d.name} ${d.vlan} ${d.ip} ${d.subnet} ${d.mac} ${d.loc} ${d.uplink} ${d.owner} ${d.notes}`.toLowerCase();
+    return hay.includes(q);
+  });
+
+  const tbody = document.getElementById('deviceTableBody');
+  tbody.innerHTML = filtered.map((d, i) => {
+    const isV18 = (d.ip || '').startsWith('172.18.');
+    const isMine = (d.owner || '').includes('حقي');
+    const auth = (d.user || d.pwd) ? `${d.user} / ${d.pwd}` : '-';
+    return `<tr>
+      <td>${i + 1}</td>
+      <td style="font-weight:bold; color:#fff;">${d.name}</td>
+      <td><span class="badge ${isV18 ? 'badge-vlan18' : 'badge-vlan17'}">${d.vlan}</span></td>
+      <td style="font-family:monospace; font-weight:bold;">${d.ip}</td>
+      <td style="font-family:monospace; color:#94a3b8;">${d.subnet}</td>
+      <td style="font-family:monospace; color:#38bdf8;">${d.mac || '-'}</td>
+      <td>${d.loc || '-'}</td>
+      <td>${d.uplink || '-'}</td>
+      <td><span class="badge ${isMine ? 'badge-mine' : 'badge-client'}">${d.owner}</span></td>
+      <td>${d.startDate || '-'}</td>
+      <td>${d.endDate || '-'}</td>
+      <td style="font-family:monospace; font-size:11px;">${auth}</td>
+      <td>${d.notes || '-'}</td>
+      <td style="font-size:11px; color:#94a3b8;">${d.updatedAt || '-'}</td>
+      <td class="no-print">
+        <button class="btn btn-primary" style="padding:4px 8px; font-size:11px;" onclick="editDevice(${d.id})">تعديل</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderBroadcast() {
+  const bcast = devices.filter(d => (d.owner && d.owner.includes('حقي')) || d.mac);
+  const grid = document.getElementById('broadcastGrid');
+  grid.innerHTML = bcast.map(d => `<div class="bcast-card">
+    <h4>📡 ${d.name} (VLAN ${d.vlan})</h4>
+    <div class="bcast-meta">
+      <strong>الآيبي:</strong> ${d.ip} | <strong>الرينج:</strong> ${d.subnet}<br>
+      <strong>الموقع:</strong> ${d.loc || 'محطة رئيسية بالبرج'}<br>
+      <strong>مشبوك من:</strong> ${d.uplink || 'البرج الرئيسي'}<br>
+      <strong>الماك:</strong> ${d.mac || 'غير مسجل'}<br>
+      <strong>الملكية:</strong> ${d.owner}<br>
+      <strong>ملاحظات:</strong> ${d.notes || '-'}
+    </div>
+  </div>`).join('');
+}
+
+function renderFamily() {
+  const mine = devices.filter(d => d.owner && d.owner.includes('حقي'));
+  const tbody = document.getElementById('familyTableBody');
+  tbody.innerHTML = mine.map(d => `<tr>
+    <td><strong>${d.vlan}</strong></td>
+    <td><strong>${d.name}</strong></td>
+    <td style="font-family:monospace;">${d.ip}</td>
+    <td>${d.loc || 'محطة بث بالبرج'}</td>
+    <td>${d.uplink || 'البرج الرئيسي'}</td>
+    <td style="font-family:monospace;">${d.mac || '-'}</td>
+    <td>${d.notes || 'جهاز تابع لملكية الشبكة'}</td>
+  </tr>`).join('');
+}
+
+function saveDevice() {
+  const vlan = parseInt(document.getElementById('fVlan').value);
+  const name = document.getElementById('fName').value.trim();
+  const ip = document.getElementById('fIp').value.trim();
+  if (!vlan || !name || !ip) {
+    alert('يرجى إدخال رقم الفيلان واسم الجهاز والآيبي!');
+    return;
+  }
+  const ts = getFormattedTimestamp();
+  const editId = document.getElementById('editId').value;
+  const obj = {
+    id: editId ? parseInt(editId) : (devices.length ? Math.max(...devices.map(x => x.id)) + 1 : 1),
+    vlan,
+    name,
+    ip,
+    subnet: document.getElementById('fSubnet').value.trim(),
+    mac: document.getElementById('fMac').value.trim(),
+    loc: document.getElementById('fLoc').value.trim(),
+    uplink: document.getElementById('fUplink').value.trim(),
+    owner: document.getElementById('fOwner').value,
+    startDate: document.getElementById('fStartDate').value,
+    endDate: document.getElementById('fEndDate').value,
+    user: document.getElementById('fUser').value.trim(),
+    pwd: document.getElementById('fPwd').value.trim(),
+    notes: document.getElementById('fNotes').value.trim(),
+    updatedAt: ts.readable
+  };
+
+  const existingIdx = devices.findIndex(x => x.id === obj.id || x.vlan === obj.vlan);
+  if (existingIdx >= 0) {
+    devices[existingIdx] = obj;
+  } else {
+    devices.push(obj);
+    devices.sort((a,b) => a.vlan - b.vlan);
+  }
+  saveData(`حفظ/تعديل جهاز ${obj.name} (فيلان ${obj.vlan})`);
+  clearForm();
+  alert(`تم حفظ الجهاز (${obj.name}) بنجاح بتوقيت: ${ts.readable}`);
+}
+
+function editDevice(id) {
+  const d = devices.find(x => x.id === id);
+  if (!d) return;
+  document.getElementById('editId').value = d.id;
+  document.getElementById('fVlan').value = d.vlan;
+  document.getElementById('fName').value = d.name;
+  document.getElementById('fIp').value = d.ip;
+  document.getElementById('fSubnet').value = d.subnet;
+  document.getElementById('fMac').value = d.mac;
+  document.getElementById('fLoc').value = d.loc;
+  document.getElementById('fUplink').value = d.uplink;
+  document.getElementById('fOwner').value = d.owner;
+  document.getElementById('fStartDate').value = d.startDate;
+  document.getElementById('fEndDate').value = d.endDate;
+  document.getElementById('fUser').value = d.user;
+  document.getElementById('fPwd').value = d.pwd;
+  document.getElementById('fNotes').value = d.notes;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function clearForm() {
+  ['editId','fVlan','fName','fIp','fSubnet','fMac','fLoc','fUplink','fStartDate','fEndDate','fUser','fPwd','fNotes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+}
+
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+// Export CSV with exact Date & Time in filename and inside the sheet
+function exportCSV() {
+  const ts = getFormattedTimestamp();
+  const metaRow = [`"تقرير شبكة نائف نت اللاسلكية - المالك: نائف محمود الصراري (736661655)"`, `"تاريخ ووقت التصدير: ${ts.readable}"`];
+  const headers = ['م','اسم الجهاز','الفيلان','عنوان IP','رينج الفيلان','الماك أدرس','الموقع','مشبوك من','الملكية','تاريخ البدء','تاريخ الانتهاء','اسم الدخول','رمز الدخول','ملاحظات','آخر تعديل'];
+  const rows = devices.map((d, i) => [
+    i+1, d.name, d.vlan, d.ip, d.subnet, d.mac, d.loc, d.uplink, d.owner, d.startDate, d.endDate, d.user, d.pwd, d.notes, d.updatedAt || ts.readable
+  ].map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(','));
+  const csv = '\uFEFF' + [metaRow.join(','), headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `شبكة_نائف_نت_تصدير_اكسل_${ts.fileStamp}.csv`;
+  a.click();
+  addHistoryEntry(`تصدير ملف إكسل مؤرخ (${a.download})`);
+}
+
+// Download JSON Backup with exact Date & Time in filename
+function downloadBackup() {
+  const ts = getFormattedTimestamp();
+  const backupObj = {
+    network: "شبكة نائف نت اللاسلكية",
+    owner: "نائف محمود الصراري",
+    phone: "736661655",
+    exportedAt: ts.readable,
+    devices: devices
+  };
+  const blob = new Blob([JSON.stringify(backupObj, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `شبكة_نائف_نت_نسخة_احتياطية_${ts.fileStamp}.json`;
+  a.click();
+  addHistoryEntry(`حفظ نسخة احتياطية مؤرخة (${a.download})`);
+}
+
+function importBackupFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      const importedDevices = Array.isArray(parsed) ? parsed : (parsed.devices || []);
+      if (importedDevices.length) {
+        devices = importedDevices;
+        saveData(`استيراد نسخة احتياطية من الملف (${file.name})`);
+        alert(`تم استيراد ${devices.length} جهازاً بنجاح!`);
+      } else {
+        alert('الملف لا يحتوي على قائمة أجهزة صالحة.');
+      }
+    } catch (err) {
+      alert('خطأ في قراءة ملف النسخة الاحتياطية.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function printWithTimestamp() {
+  const ts = getFormattedTimestamp();
+  document.getElementById('printTimeText').innerText = ts.readable;
+  const oldTitle = document.title;
+  document.title = `شبكة_نائف_نت_تقرير_شامل_${ts.fileStamp}`;
+  window.print();
+  document.title = oldTitle;
+  addHistoryEntry(`طباعة / حفظ تقرير PDF بالتاريخ والوقت (${ts.readable})`);
+}
+
+function resetToDefault() {
+  if (confirm('هل تريد استعادة البيانات الأصلية (357 جهازاً وفيلاناً)؟')) {
+    localStorage.removeItem('naif_net_v4_devices');
+    loadData();
+    addHistoryEntry('استعادة بيانات المصنع الافتراضية');
+  }
+}
+
+window.onload = loadData;
+</script>
+</body>
+</html>
